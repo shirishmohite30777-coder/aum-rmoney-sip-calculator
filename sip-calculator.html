@@ -858,3 +858,106 @@
   </script>
 </body>
 </html>
+<script>
+(function () {
+  if (window.__aumLeadBound) return;
+  window.__aumLeadBound = true;
+
+  const LEAD_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzgAGz-gMSINJGPXCaiUsKMmwjx7cXo0ICji_Mkzri1fxRIu4QWdKVr4dnWtmsSPs0/exec";
+
+  function initAumLeadCapture() {
+    const form = document.getElementById("aumLeadForm") || document.querySelector("form");
+    const btn =
+      document.getElementById("btnSubmitLead") ||
+      (form && form.querySelector("button[type='submit'], input[type='submit']")) ||
+      Array.from(document.querySelectorAll("button, input[type='button'], input[type='submit']")).find(
+        (el) => (el.textContent || el.value || "").trim().toLowerCase() === "request call"
+      );
+
+    if (!btn) return;
+
+    const candidateInputs = Array.from(
+      (form || btn.parentElement || document).querySelectorAll("input")
+    ).filter((el) => !["button", "submit", "reset", "hidden"].includes((el.type || "").toLowerCase()));
+
+    const nameEl = document.getElementById("inName") || candidateInputs[0] || null;
+    const phoneEl = document.getElementById("inPhone") || candidateInputs[1] || null;
+    const emailEl = document.getElementById("inEmail") || candidateInputs[2] || null;
+    const statusEl =
+      document.getElementById("leadStatus") ||
+      (btn.nextElementSibling && btn.nextElementSibling.tagName !== "SCRIPT" ? btn.nextElementSibling : null);
+
+    if (statusEl && LEAD_SCRIPT_URL && !LEAD_SCRIPT_URL.includes("YOUR_DEPLOYMENT_ID")) {
+      statusEl.textContent = "Ready to send leads.";
+    }
+
+    async function submitLead(e) {
+      if (e) e.preventDefault();
+
+      const name = (nameEl && nameEl.value ? nameEl.value : "").trim();
+      const phone = (phoneEl && phoneEl.value ? phoneEl.value : "").trim();
+      const email = (emailEl && emailEl.value ? emailEl.value : "").trim();
+
+      if (!name || !phone || !email) {
+        if (statusEl) statusEl.textContent = "Please enter Name, Phone, and Email.";
+        return;
+      }
+
+      if (!LEAD_SCRIPT_URL || LEAD_SCRIPT_URL.includes("YOUR_DEPLOYMENT_ID")) {
+        if (statusEl) statusEl.textContent = "LEAD_SCRIPT_URL is not configured.";
+        return;
+      }
+
+      if (statusEl) statusEl.textContent = "Sending...";
+
+      const params = new URLSearchParams(window.location.search);
+      const payload = {
+        name,
+        phone,
+        email,
+        source: params.get("utm_source") || "sip_calculator_web",
+        channel: "aumrmoney",
+        language: typeof currentLang !== "undefined" ? currentLang : "en",
+        mode: typeof currentMode !== "undefined" ? currentMode : "forward",
+        monthlySip: (document.getElementById("monthlySipNum") && document.getElementById("monthlySipNum").value) || "",
+        targetCorpus: (document.getElementById("targetCorpusNum") && document.getElementById("targetCorpusNum").value) || "",
+        years: (document.getElementById("tenureNum") && document.getElementById("tenureNum").value) || "",
+        rate: (document.getElementById("returnRateNum") && document.getElementById("returnRateNum").value) || "",
+        stepUp: (document.getElementById("stepUpNum") && document.getElementById("stepUpNum").value) || ""
+      };
+
+      try {
+        await fetch(LEAD_SCRIPT_URL, {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(payload)
+        });
+
+        if (statusEl) {
+          statusEl.textContent = "Submitted! Your details have been sent.";
+        }
+        if (form && typeof form.reset === "function") {
+          form.reset();
+        }
+      } catch (err) {
+        if (statusEl) {
+          statusEl.textContent = "Submission failed. Please try again.";
+        }
+      }
+    }
+
+    if (form) {
+      form.addEventListener("submit", submitLead);
+    } else {
+      btn.addEventListener("click", submitLead);
+    }
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initAumLeadCapture);
+  } else {
+    initAumLeadCapture();
+  }
+})();
+</script>

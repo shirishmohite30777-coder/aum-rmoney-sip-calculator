@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AUM R Money — Smart &amp; Goal-Based SIP Calculator</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg-deep: #071f16;
+      --bg-card: #0d2e21;
+      --bg-elevated: #133d2c;
+      --gold: #f5b727;
+      --gold-soft: rgba(245, 183, 39, 0.16);
+      --orange: #ff6b1a;
+      --sky: #38bdf8;
+      --text-main: #f4fbf7;
+      --text-muted: #a7c4b8;
+      --border: rgba(245, 183, 39, 0.24);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: radial-gradient(circle at top right, #124430 0%, var(--bg-deep) 58%);
+      color: var(--text-main);
+      min-height: 100vh;
+      padding: 24px 16px 48px;
+    }
+
+    .aum-wrap {
+      max-width: 1120px;
+      margin: 0 auto;
+    }
+
+    .aum-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      background: linear-gradient(120deg, var(--bg-card), var(--bg-elevated));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 14px 36px rgba(0, 0, 0, 0.35);
+    }
+
+    .brand-tag {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--bg-deep);
+      background: var(--gold);
+      padding: 4px 10px;
+      border-radius: 999px;
+      margin-bottom: 8px;
+    }
+
+    .aum-header h1 {
+      font-size: clamp(1.45rem, 2.6vw, 2.1rem);
+      line-height: 1.2;
+    }
+
+    .aum-header h1 span { color: var(--gold); }
+
+    .feed-pill {
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      color: var(--sky);
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-size: 0.85rem;
+      max-width: 380px;
+    }
+
+    .mode-switch {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      background: var(--bg-deep);
+      padding: 6px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      margin-bottom: 16px;
+    }
+
+    .mode-btn {
+      padding: 10px 12px;
+      border: none;
+      border-radius: 10px;
+      background: transparent;
+      color: var(--text-muted);
+      font-weight: 700;
+      font-size: 0.88rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .mode-btn.active {
+      background: linear-gradient(90deg, var(--orange), var(--gold));
+      color: #071f16;
+    }
+
+    .grid-main {
+      display: grid;
+      grid-template-columns: 1.05fr 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 860px) {
+      .grid-main { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px;
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.28);
+    }
+
+    .preset-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 18px;
+    }
+
+    .preset-btn {
+      background: var(--bg-elevated);
+      color: var(--text-main);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      padding: 8px 12px;
+      border-radius: 10px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .preset-btn:hover, .preset-btn.active {
+      background: var(--orange);
+      border-color: var(--orange);
+      color: #fff;
+    }
+
+    .control-group { margin-bottom: 18px; }
+    .control-group.hidden { display: none; }
+
+    .control-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      gap: 12px;
+    }
+
+    .control-label {
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: var(--text-main);
+    }
+
+    .num-input {
+      width: 146px;
+      background: var(--bg-deep);
+      border: 1px solid var(--gold);
+      color: var(--gold);
+      font-weight: 700;
+      font-size: 0.95rem;
+      padding: 6px 10px;
+      border-radius: 8px;
+      text-align: right;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--orange);
+      cursor: pointer;
+      height: 6px;
+    }
+
+    .goal-banner {
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.45);
+      border-radius: 14px;
+      padding: 14px 16px;
+      margin-bottom: 16px;
+      display: none;
+    }
+
+    .goal-banner.visible {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .goal-banner-label {
+      font-size: 0.82rem;
+      color: var(--sky);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .goal-banner-val {
+      font-size: 1.45rem;
+      font-weight: 800;
+      color: var(--gold);
+    }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    @media (max-width: 540px) {
+      .kpi-grid { grid-template-columns: 1fr; }
+    }
+
+    .kpi-box {
+      background: var(--bg-elevated);
+      border-radius: 14px;
+      padding: 14px;
+      border-left: 4px solid var(--sky);
+    }
+
+    .kpi-box.gains { border-left-color: var(--gold); }
+    .kpi-box.total { border-left-color: var(--orange); background: var(--gold-soft); }
+
+    .kpi-title { font-size: 0.76rem; color: var(--text-muted); margin-bottom: 4px; }
+    .kpi-val { font-size: 1.12rem; font-weight: 800; }
+
+    .charts-row {
+      display: grid;
+      grid-template-columns: 0.9fr 1.1fr;
+      gap: 14px;
+      align-items: center;
+    }
+
+    @media (max-width: 640px) {
+      .charts-row { grid-template-columns: 1fr; }
+    }
+
+    .chart-box {
+      background: var(--bg-deep);
+      border-radius: 14px;
+      padding: 12px;
+      min-height: 210px;
+      position: relative;
+    }
+
+    .lead-card {
+      margin-top: 20px;
+      background: linear-gradient(135deg, var(--bg-elevated), #0b291d);
+      border: 1px solid var(--gold);
+      border-radius: var(--radius);
+      padding: 22px;
+    }
+
+    .lead-form {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr) auto;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    @media (max-width: 760px) {
+      .lead-form { grid-template-columns: 1fr; }
+    }
+
+    .lead-form input {
+      background: var(--bg-deep);
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      color: var(--text-main);
+      padding: 11px 12px;
+      border-radius: 10px;
+      font-size: 0.9rem;
+    }
+
+    .btn-cta {
+      background: linear-gradient(90deg, var(--orange), var(--gold));
+      color: #071f16;
+      font-weight: 800;
+      border: none;
+      padding: 11px 18px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 0.92rem;
+    }
+
+    .disclaimer {
+      margin-top: 18px;
+      font-size: 0.78rem;
+      line-height: 1.5;
+      color: var(--text-muted);
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      padding-top: 14px;
+    }
+
+    .status-msg {
+      margin-top: 10px;
+      font-size: 0.86rem;
+      color: var(--gold);
+      min-height: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="aum-wrap">
+    <header class="aum-header">
+      <div>
+        <span class="brand-tag">AUM R Money • Wealth Planner</span>
+        <h1>Smart <span>Forward &amp; Goal SIP</span> Calculator</h1>
+      </div>
+      <div class="feed-pill" id="marketFeedStatus">
+        Benchmark Feed: Ready • Reference rates syncable via Google Sheets (GOOGLEFINANCE) &amp; Yahoo Finance JSON
+      </div>
+    </header>
+
+    <div class="grid-main">
+      <section class="card">
+        <div class="mode-switch" role="tablist" aria-label="Calculator Mode">
+          <button type="button" class="mode-btn active" id="modeForwardBtn" data-mode="forward">
+            Forward SIP (Know Corpus)
+          </button>
+          <button type="button" class="mode-btn" id="modeGoalBtn" data-mode="goal">
+            Goal Reverse (Know Monthly SIP)
+          </button>
+        </div>
+
+        <div class="preset-bar" role="group" aria-label="Benchmark Return Presets">
+          <button type="button" class="preset-btn" data-rate="8">Debt / Conservative (8%)</button>
+          <button type="button" class="preset-btn active" data-rate="12.5">Large Cap / Nifty Ref (12.5%)</button>
+          <button type="button" class="preset-btn" data-rate="15">Growth Equity Ref (15%)</button>
+        </div>
+
+        <div class="control-group" id="forwardSipGroup">
+          <div class="control-top">
+            <label class="control-label" for="monthlySipNum">Monthly SIP Amount (₹)</label>
+            <input type="number" id="monthlySipNum" class="num-input" min="500" max="5000000" step="500" value="10000" />
+          </div>
+          <input type="range" id="monthlySipRange" min="500" max="250000" step="500" value="10000" />
+        </div>
+
+        <div class="control-group hidden" id="targetCorpusGroup">
+          <div class="control-top">
+            <label class="control-label" for="targetCorpusNum">Target Goal Corpus (₹)</label>
+            <input type="number" id="targetCorpusNum" class="num-input" min="10000" max="500000000" step="50000" value="5000000" />
+          </div>
+          <input type="range" id="targetCorpusRange" min="100000" max="50000000" step="100000" value="5000000" />
+        </div>
+
+        <div class="control-group">
+          <div class="control-top">
+            <label class="control-label" for="tenureNum">Goal Tenure (Years)</label>
+            <input type="number" id="tenureNum" class="num-input" min="1" max="45" step="1" value="15" />
+          </div>
+          <input type="range" id="tenureRange" min="1" max="40" step="1" value="15" />
+        </div>
+
+        <div class="control-group">
+          <div class="control-top">
+            <label class="control-label" for="returnRateNum">Expected Return p.a. (%)</label>
+            <input type="number" id="returnRateNum" class="num-input" min="1" max="35" step="0.5" value="12.5" />
+          </div>
+          <input type="range" id="returnRateRange" min="1" max="30" step="0.5" value="12.5" />
+        </div>
+
+        <div class="control-group">
+          <div class="control-top">
+            <label class="control-label" for="stepUpNum">Annual Step-Up SIP (% / yr)</label>
+            <input type="number" id="stepUpNum" class="num-input" min="0" max="50" step="1" value="10" />
+          </div>
+          <input type="range" id="stepUpRange" min="0" max="30" step="1" value="10" />
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="goal-banner" id="goalBanner">
+          <div>
+            <div class="goal-banner-label">Required Starting Monthly SIP</div>
+            <div style="font-size: 0.82rem; color: var(--text-muted);" id="goalBannerSub">
+              To reach target corpus over selected tenure &amp; step-up
+            </div>
+          </div>
+          <div class="goal-banner-val" id="outRequiredSip">₹0/mo</div>
+        </div>
+
+        <div class="kpi-grid">
+          <div class="kpi-box">
+            <div class="kpi-title">Total Invested</div>
+            <div class="kpi-val" id="outInvested">₹0</div>
+          </div>
+          <div class="kpi-box gains">
+            <div class="kpi-title">Est. Wealth Gained</div>
+            <div class="kpi-val" id="outGains">₹0</div>
+          </div>
+          <div class="kpi-box total">
+            <div class="kpi-title" id="corpusKpiTitle">Projected Corpus</div>
+            <div class="kpi-val" id="outTotal">₹0</div>
+          </div>
+        </div>
+
+        <div class="charts-row">
+          <div class="chart-box"><canvas id="donutChart"></canvas></div>
+          <div class="chart-box"><canvas id="growthChart"></canvas></div>
+        </div>
+      </section>
+    </div>
+
+    <section class="lead-card">
+      <h2>Get a Personalized Goal &amp; Risk-Profile Review</h2>
+      <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 4px;">
+        Share your contact details for an educational walkthrough aligned with your target goal and timeline.
+      </p>
+      <form class="lead-form" id="aumLeadForm">
+        <input type="text" name="name" placeholder="Your Full Name" required />
+        <input type="tel" name="phone" placeholder="Phone Number" required />
+        <input type="email" name="email" placeholder="Email Address" required />
+        <button type="submit" class="btn-cta">Request Call</button>
+      </form>
+      <div class="status-msg" id="leadStatus"></div>
+
+      <p class="disclaimer">
+        <strong>Disclaimer:</strong> Mutual fund investments are subject to market risks. Read all scheme-related documents carefully before investing. Calculator projections and reverse-goal SIP figures are illustrative estimates based on user inputs and historical/reference benchmark rates; they do not constitute investment advice or guarantee future returns. ARN / SEBI / AMFI / IRDA compliance disclosures apply as per applicable regulations.
+      </p>
+    </section>
+  </div>
+
+  <script>
+    const BENCHMARK_JSON_URL = ""; // Optional: set your Google Apps Script / GitHub JSON URL
+    const LEAD_SCRIPT_URL = "";    // Set your Google Apps Script lead-capture web app URL
+
+    let currentMode = "forward";
+
+    const els = {
+      modeForwardBtn: document.getElementById("modeForwardBtn"),
+      modeGoalBtn: document.getElementById("modeGoalBtn"),
+      forwardSipGroup: document.getElementById("forwardSipGroup"),
+      targetCorpusGroup: document.getElementById("targetCorpusGroup"),
+      sipNum: document.getElementById("monthlySipNum"),
+      sipRange: document.getElementById("monthlySipRange"),
+      targetNum: document.getElementById("targetCorpusNum"),
+      targetRange: document.getElementById("targetCorpusRange"),
+      yrNum: document.getElementById("tenureNum"),
+      yrRange: document.getElementById("tenureRange"),
+      rateNum: document.getElementById("returnRateNum"),
+      rateRange: document.getElementById("returnRateRange"),
+      stepNum: document.getElementById("stepUpNum"),
+      stepRange: document.getElementById("stepUpRange"),
+      goalBanner: document.getElementById("goalBanner"),
+      goalBannerSub: document.getElementById("goalBannerSub"),
+      outRequiredSip: document.getElementById("outRequiredSip"),
+      outInvested: document.getElementById("outInvested"),
+      outGains: document.getElementById("outGains"),
+      outTotal: document.getElementById("outTotal"),
+      corpusKpiTitle: document.getElementById("corpusKpiTitle"),
+      feedStatus: document.getElementById("marketFeedStatus"),
+      form: document.getElementById("aumLeadForm"),
+      leadStatus: document.getElementById("leadStatus")
+    };
+
+    const fmtINR = (val) =>
+      new Intl.NumberFormat("en-IN", {
+        style: "currency",
+        currency: "INR",
+        maximumFractionDigits: 0
+      }).format(Math.round(val));
+
+    function simulateSchedule(monthlySip, annualRatePct, years, stepUpPct) {
+      const r = annualRatePct / 100 / 12;
+      let currentSip = monthlySip;
+      let corpus = 0;
+      let invested = 0;
+      const yearlyLabels = [];
+      const yearlyInvested = [];
+      const yearlyCorpus = [];
+
+      for (let y = 1; y <= years; y++) {
+        for (let m = 1; m <= 12; m++) {
+          invested += currentSip;
+          corpus = (corpus + currentSip) * (1 + r);
+        }
+        yearlyLabels.push(`Yr ${y}`);
+        yearlyInvested.push(Math.round(invested));
+        yearlyCorpus.push(Math.round(corpus));
+        currentSip = currentSip * (1 + stepUpPct / 100);
+      }
+
+      return {
+        invested,
+        total: corpus,
+        gains: Math.max(0, corpus - invested),
+        yearlyLabels,
+        yearlyInvested,
+        yearlyCorpus
+      };
+    }
+
+    function solveRequiredMonthlySip(targetCorpus, annualRatePct, years, stepUpPct) {
+      const unitFactor = simulateSchedule(1, annualRatePct, years, stepUpPct).total;
+      if (unitFactor <= 0) return 0;
+      return targetCorpus / unitFactor;
+    }
+
+    const donutChart = new Chart(document.getElementById("donutChart"), {
+      type: "doughnut",
+      data: {
+        labels: ["Invested", "Wealth Gained"],
+        datasets: [{
+          data: [1, 1],
+          backgroundColor: ["#38bdf8", "#f5b727"],
+          borderWidth: 0
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: "bottom", labels: { color: "#f4fbf7", boxWidth: 12 } }
+        }
+      }
+    });
+
+    const growthChart = new Chart(document.getElementById("growthChart"), {
+      type: "line",
+      data: {
+        labels: [],
+        datasets: [
+          {
+            label: "Corpus",
+            data: [],
+            borderColor: "#ff6b1a",
+            backgroundColor: "rgba(255, 107, 26, 0.18)",
+            fill: true,
+            tension: 0.3
+          },
+          {
+            label: "Invested",
+            data: [],
+            borderColor: "#38bdf8",
+            borderDash: [4, 4],
+            tension: 0.3
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: "bottom", labels: { color: "#f4fbf7", boxWidth: 12 } }
+        },
+        scales: {
+          x: { ticks: { color: "#a7c4b8", maxTicksLimit: 6 }, grid: { color: "rgba(255,255,255,0.06)" } },
+          y: { ticks: { color: "#a7c4b8" }, grid: { color: "rgba(255,255,255,0.06)" } }
+        }
+      }
+    });
+
+    function setMode(mode) {
+      currentMode = mode;
+      const isGoal = mode === "goal";
+      els.modeForwardBtn.classList.toggle("active", !isGoal);
+      els.modeGoalBtn.classList.toggle("active", isGoal);
+      els.forwardSipGroup.classList.toggle("hidden", isGoal);
+      els.targetCorpusGroup.classList.toggle("hidden", !isGoal);
+      els.goalBanner.classList.toggle("visible", isGoal);
+      els.corpusKpiTitle.textContent = isGoal ? "Target Corpus" : "Projected Corpus";
+      refreshUI();
+    }
+
+    function refreshUI() {
+      const rate = Math.max(0, Number(els.rateNum.value) || 0);
+      const yrs = Math.max(1, Math.min(45, Number(els.yrNum.value) || 1));
+      const step = Math.max(0, Number(els.stepNum.value) || 0);
+
+      let sipToUse = Math.max(100, Number(els.sipNum.value) || 0);
+      if (currentMode === "goal") {
+        const target = Math.max(1000, Number(els.targetNum.value) || 0);
+        sipToUse = solveRequiredMonthlySip(target, rate, yrs, step);
+        els.outRequiredSip.textContent = `${fmtINR(sipToUse)}/mo`;
+        els.goalBannerSub.textContent = step > 0
+          ? `Year 1 SIP stepping up ${step}% every year over ${yrs} yrs`
+          : `Flat monthly SIP over ${yrs} yrs at ${rate}% p.a.`;
+      }
+
+      const res = simulateSchedule(sipToUse, rate, yrs, step);
+      els.outInvested.textContent = fmtINR(res.invested);
+      els.outGains.textContent = fmtINR(res.gains);
+      els.outTotal.textContent = fmtINR(res.total);
+
+      donutChart.data.datasets[0].data = [Math.round(res.invested), Math.round(res.gains)];
+      donutChart.update();
+
+      growthChart.data.labels = res.yearlyLabels;
+      growthChart.data.datasets[0].data = res.yearlyCorpus;
+      growthChart.data.datasets[1].data = res.yearlyInvested;
+      growthChart.update();
+    }
+
+    function bindPair(numEl, rangeEl) {
+      rangeEl.addEventListener("input", () => {
+        numEl.value = rangeEl.value;
+        refreshUI();
+      });
+      numEl.addEventListener("input", () => {
+        const val = Number(numEl.value);
+        if (!Number.isNaN(val)) {
+          rangeEl.value = Math.min(Number(rangeEl.max), Math.max(Number(rangeEl.min), val));
+        }
+        refreshUI();
+      });
+    }
+
+    els.modeForwardBtn.addEventListener("click", () => setMode("forward"));
+    els.modeGoalBtn.addEventListener("click", () => setMode("goal"));
+
+    bindPair(els.sipNum, els.sipRange);
+    bindPair(els.targetNum, els.targetRange);
+    bindPair(els.yrNum, els.yrRange);
+    bindPair(els.rateNum, els.rateRange);
+    bindPair(els.stepNum, els.stepRange);
+
+    document.querySelectorAll(".preset-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".preset-btn").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        const r = btn.dataset.rate;
+        els.rateNum.value = r;
+        els.rateRange.value = r;
+        refreshUI();
+      });
+    });
+
+    if (BENCHMARK_JSON_URL) {
+      fetch(BENCHMARK_JSON_URL)
+        .then((r) => r.json())
+        .then((data) => {
+          if (data && data.summary) {
+            els.feedStatus.textContent = `Benchmark Feed: ${data.summary}`;
+          }
+        })
+        .catch(() => {
+          els.feedStatus.textContent = "Benchmark Feed: Using local reference presets";
+        });
+    }
+
+    els.form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const payload = {
+        name: els.form.name.value.trim(),
+        phone: els.form.phone.value.trim(),
+        email: els.form.email.value.trim(),
+        mode: currentMode,
+        targetCorpus: currentMode === "goal" ? els.targetNum.value : els.outTotal.textContent,
+        monthlySip: currentMode === "goal" ? els.outRequiredSip.textContent : els.sipNum.value,
+        years: els.yrNum.value,
+        rate: els.rateNum.value,
+        stepUp: els.stepNum.value
+      };
+
+      if (!LEAD_SCRIPT_URL) {
+        els.leadStatus.textContent = "Form ready — connect LEAD_SCRIPT_URL to save leads to Google Sheets.";
+        return;
+      }
+
+      els.leadStatus.textContent = "Submitting request...";
+      try {
+        await fetch(LEAD_SCRIPT_URL, {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        els.leadStatus.textContent = "Thank you! Your goal plan request has been recorded.";
+        els.form.reset();
+      } catch {
+        els.leadStatus.textContent = "Could not submit right now. Please try again.";
+      }
+    });
+
+    refreshUI();
+  </script>
+</body>
+</html>

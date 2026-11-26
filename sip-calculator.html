@@ -69,14 +69,29 @@
 
     .aum-header h1 span { color: var(--gold); }
 
-    .feed-pill {
-      background: rgba(56, 189, 248, 0.12);
-      border: 1px solid rgba(56, 189, 248, 0.4);
-      color: var(--sky);
-      padding: 10px 14px;
-      border-radius: 12px;
+    .lang-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .lang-btn {
+      background: var(--bg-deep);
+      color: var(--text-main);
+      border: 1px solid rgba(245, 183, 39, 0.45);
+      padding: 9px 14px;
+      border-radius: 10px;
       font-size: 0.85rem;
-      max-width: 380px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .lang-btn:hover, .lang-btn.active {
+      background: var(--gold);
+      color: var(--bg-deep);
+      border-color: var(--gold);
     }
 
     .mode-switch {
@@ -320,11 +335,14 @@
   <div class="aum-wrap">
     <header class="aum-header">
       <div>
-        <span class="brand-tag">AUM R Money • Wealth Planner</span>
-        <h1>Smart <span>Forward &amp; Goal SIP</span> Calculator</h1>
+        <span class="brand-tag" id="brandTag">AUM R Money • @aumrmoney</span>
+        <h1 id="mainTitle">Smart <span>Forward &amp; Goal SIP</span> Calculator</h1>
       </div>
-      <div class="feed-pill" id="marketFeedStatus">
-        Benchmark Feed: Ready • Reference rates syncable via Google Sheets (GOOGLEFINANCE) &amp; Yahoo Finance JSON
+      <div class="lang-bar" role="group" aria-label="Language Switcher">
+        <button type="button" class="lang-btn active" data-lang="en">English</button>
+        <button type="button" class="lang-btn" data-lang="hi">हिन्दी</button>
+        <button type="button" class="lang-btn" data-lang="mr">मराठी</button>
+        <button type="button" class="lang-btn" data-lang="gu">ગુજરાતી</button>
       </div>
     </header>
 
@@ -340,14 +358,14 @@
         </div>
 
         <div class="preset-bar" role="group" aria-label="Benchmark Return Presets">
-          <button type="button" class="preset-btn" data-rate="8">Debt / Conservative (8%)</button>
-          <button type="button" class="preset-btn active" data-rate="12.5">Large Cap / Nifty Ref (12.5%)</button>
-          <button type="button" class="preset-btn" data-rate="15">Growth Equity Ref (15%)</button>
+          <button type="button" class="preset-btn" data-rate="8" id="presetDebt">Debt / Conservative (8%)</button>
+          <button type="button" class="preset-btn active" data-rate="12.5" id="presetLarge">Large Cap / Nifty Ref (12.5%)</button>
+          <button type="button" class="preset-btn" data-rate="15" id="presetGrowth">Growth Equity Ref (15%)</button>
         </div>
 
         <div class="control-group" id="forwardSipGroup">
           <div class="control-top">
-            <label class="control-label" for="monthlySipNum">Monthly SIP Amount (₹)</label>
+            <label class="control-label" for="monthlySipNum" id="lblMonthlySip">Monthly SIP Amount (₹)</label>
             <input type="number" id="monthlySipNum" class="num-input" min="500" max="5000000" step="500" value="10000" />
           </div>
           <input type="range" id="monthlySipRange" min="500" max="250000" step="500" value="10000" />
@@ -355,7 +373,7 @@
 
         <div class="control-group hidden" id="targetCorpusGroup">
           <div class="control-top">
-            <label class="control-label" for="targetCorpusNum">Target Goal Corpus (₹)</label>
+            <label class="control-label" for="targetCorpusNum" id="lblTargetCorpus">Target Goal Corpus (₹)</label>
             <input type="number" id="targetCorpusNum" class="num-input" min="10000" max="500000000" step="50000" value="5000000" />
           </div>
           <input type="range" id="targetCorpusRange" min="100000" max="50000000" step="100000" value="5000000" />
@@ -363,7 +381,7 @@
 
         <div class="control-group">
           <div class="control-top">
-            <label class="control-label" for="tenureNum">Goal Tenure (Years)</label>
+            <label class="control-label" for="tenureNum" id="lblTenure">Goal Tenure (Years)</label>
             <input type="number" id="tenureNum" class="num-input" min="1" max="45" step="1" value="15" />
           </div>
           <input type="range" id="tenureRange" min="1" max="40" step="1" value="15" />
@@ -371,7 +389,7 @@
 
         <div class="control-group">
           <div class="control-top">
-            <label class="control-label" for="returnRateNum">Expected Return p.a. (%)</label>
+            <label class="control-label" for="returnRateNum" id="lblRate">Expected Return p.a. (%)</label>
             <input type="number" id="returnRateNum" class="num-input" min="1" max="35" step="0.5" value="12.5" />
           </div>
           <input type="range" id="returnRateRange" min="1" max="30" step="0.5" value="12.5" />
@@ -379,7 +397,7 @@
 
         <div class="control-group">
           <div class="control-top">
-            <label class="control-label" for="stepUpNum">Annual Step-Up SIP (% / yr)</label>
+            <label class="control-label" for="stepUpNum" id="lblStepUp">Annual Step-Up SIP (% / yr)</label>
             <input type="number" id="stepUpNum" class="num-input" min="0" max="50" step="1" value="10" />
           </div>
           <input type="range" id="stepUpRange" min="0" max="30" step="1" value="10" />
@@ -389,7 +407,7 @@
       <section class="card">
         <div class="goal-banner" id="goalBanner">
           <div>
-            <div class="goal-banner-label">Required Starting Monthly SIP</div>
+            <div class="goal-banner-label" id="goalBannerLabel">Required Starting Monthly SIP</div>
             <div style="font-size: 0.82rem; color: var(--text-muted);" id="goalBannerSub">
               To reach target corpus over selected tenure &amp; step-up
             </div>
@@ -399,11 +417,11 @@
 
         <div class="kpi-grid">
           <div class="kpi-box">
-            <div class="kpi-title">Total Invested</div>
+            <div class="kpi-title" id="kpiInvestedTitle">Total Invested</div>
             <div class="kpi-val" id="outInvested">₹0</div>
           </div>
           <div class="kpi-box gains">
-            <div class="kpi-title">Est. Wealth Gained</div>
+            <div class="kpi-title" id="kpiGainsTitle">Est. Wealth Gained</div>
             <div class="kpi-val" id="outGains">₹0</div>
           </div>
           <div class="kpi-box total">
@@ -420,33 +438,155 @@
     </div>
 
     <section class="lead-card">
-      <h2>Get a Personalized Goal &amp; Risk-Profile Review</h2>
-      <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 4px;">
+      <h2 id="leadHeading">Get a Personalized Goal &amp; Risk-Profile Review</h2>
+      <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 4px;" id="leadSubtext">
         Share your contact details for an educational walkthrough aligned with your target goal and timeline.
       </p>
       <form class="lead-form" id="aumLeadForm">
-        <input type="text" name="name" placeholder="Your Full Name" required />
-        <input type="tel" name="phone" placeholder="Phone Number" required />
-        <input type="email" name="email" placeholder="Email Address" required />
-        <button type="submit" class="btn-cta">Request Call</button>
+        <input type="text" name="name" id="inName" placeholder="Your Full Name" required />
+        <input type="tel" name="phone" id="inPhone" placeholder="Phone Number" required />
+        <input type="email" name="email" id="inEmail" placeholder="Email Address" required />
+        <button type="submit" class="btn-cta" id="btnSubmitLead">Request Call</button>
       </form>
       <div class="status-msg" id="leadStatus"></div>
 
-      <p class="disclaimer">
+      <p class="disclaimer" id="disclaimerText">
         <strong>Disclaimer:</strong> Mutual fund investments are subject to market risks. Read all scheme-related documents carefully before investing. Calculator projections and reverse-goal SIP figures are illustrative estimates based on user inputs and historical/reference benchmark rates; they do not constitute investment advice or guarantee future returns. ARN / SEBI / AMFI / IRDA compliance disclosures apply as per applicable regulations.
       </p>
     </section>
   </div>
 
   <script>
-    const BENCHMARK_JSON_URL = ""; // Optional: set your Google Apps Script / GitHub JSON URL
-    const LEAD_SCRIPT_URL = "";    // Set your Google Apps Script lead-capture web app URL
+    const LEAD_SCRIPT_URL = ""; // Set your Google Apps Script lead-capture web app URL
+
+    const I18N = {
+      en: {
+        titleHtml: 'Smart <span>Forward &amp; Goal SIP</span> Calculator',
+        modeForward: "Forward SIP (Know Corpus)",
+        modeGoal: "Goal Reverse (Know Monthly SIP)",
+        presetDebt: "Debt / Conservative (8%)",
+        presetLarge: "Large Cap / Nifty Ref (12.5%)",
+        presetGrowth: "Growth Equity Ref (15%)",
+        lblMonthlySip: "Monthly SIP Amount (₹)",
+        lblTargetCorpus: "Target Goal Corpus (₹)",
+        lblTenure: "Goal Tenure (Years)",
+        lblRate: "Expected Return p.a. (%)",
+        lblStepUp: "Annual Step-Up SIP (% / yr)",
+        goalBannerLabel: "Required Starting Monthly SIP",
+        kpiInvested: "Total Invested",
+        kpiGains: "Est. Wealth Gained",
+        kpiCorpusForward: "Projected Corpus",
+        kpiCorpusGoal: "Target Corpus",
+        leadHeading: "Get a Personalized Goal & Risk-Profile Review",
+        leadSubtext: "Share your contact details for an educational walkthrough aligned with your target goal and timeline.",
+        phName: "Your Full Name",
+        phPhone: "Phone Number",
+        phEmail: "Email Address",
+        btnSubmit: "Request Call",
+        disclaimerHtml: "<strong>Disclaimer:</strong> Mutual fund investments are subject to market risks. Read all scheme-related documents carefully before investing. Calculator projections and reverse-goal SIP figures are illustrative estimates based on user inputs and historical/reference benchmark rates; they do not constitute investment advice or guarantee future returns."
+      },
+      hi: {
+        titleHtml: 'स्मार्ट <span>फॉरवर्ड और गोल SIP</span> कैलकुलेटर',
+        modeForward: "फॉरवर्ड SIP (कुल राशि जानें)",
+        modeGoal: "गोल रिवर्स (मासिक SIP जानें)",
+        presetDebt: "डेट / कंजर्वेटिव (8%)",
+        presetLarge: "लार्ज कैप / निफ्टी संदर्भ (12.5%)",
+        presetGrowth: "ग्रोथ इक्विटी संदर्भ (15%)",
+        lblMonthlySip: "मासिक SIP राशि (₹)",
+        lblTargetCorpus: "लक्ष्य राशि / Target Corpus (₹)",
+        lblTenure: "लक्ष्य अवधि (वर्ष)",
+        lblRate: "अनुमानित वार्षिक रिटर्न (%)",
+        lblStepUp: "सालाना Step-Up SIP (% / वर्ष)",
+        goalBannerLabel: "आवश्यक शुरुआती मासिक SIP",
+        kpiInvested: "कुल निवेश",
+        kpiGains: "अनुमानित लाभ",
+        kpiCorpusForward: "अनुमानित कुल राशि",
+        kpiCorpusGoal: "लक्ष्य राशि",
+        leadHeading: "व्यक्तिगत लक्ष्य और रिस्क-प्रोफाइल समीक्षा पाएं",
+        leadSubtext: "अपने लक्ष्य और समय-सीमा के अनुसार शैक्षिक मार्गदर्शन के लिए अपना विवरण साझा करें।",
+        phName: "आपका पूरा नाम",
+        phPhone: "फ़ोन नंबर",
+        phEmail: "ईमेल पता",
+        btnSubmit: "कॉल का अनुरोध करें",
+        disclaimerHtml: "<strong>अस्वीकरण (Disclaimer):</strong> म्यूचुअल फंड निवेश बाजार के जोखिमों के अधीन हैं। निवेश करने से पहले योजना से जुड़े सभी दस्तावेजों को ध्यान से पढ़ें। गणना के आंकड़े केवल उदाहरण/अनुमान के लिए हैं और भविष्य के निश्चित रिटर्न की गारंटी नहीं देते।"
+      },
+      mr: {
+        titleHtml: 'स्मार्ट <span>फॉरवर्ड आणि गोल SIP</span> कॅल्क्युलेटर',
+        modeForward: "फॉरवर्ड SIP (एकूण रक्कम पहा)",
+        modeGoal: "गोल रिव्हर्स (मासिक SIP पहा)",
+        presetDebt: "डेट / कन्झर्व्हेटिव्ह (8%)",
+        presetLarge: "लार्ज कॅप / निफ्टी संदर्भ (12.5%)",
+        presetGrowth: "ग्रोथ इक्विटी संदर्भ (15%)",
+        lblMonthlySip: "मासिक SIP रक्कम (₹)",
+        lblTargetCorpus: "ध्येय रक्कम / Target Corpus (₹)",
+        lblTenure: "कालावधी (वर्षे)",
+        lblRate: "अपेक्षित वार्षिक परतावा (%)",
+        lblStepUp: "वार्षिक Step-Up SIP (% / वर्ष)",
+        goalBannerLabel: "आवश्यक सुरुवातीची मासिक SIP",
+        kpiInvested: "एकूण गुंतवणूक",
+        kpiGains: "अंदाजित नफा",
+        kpiCorpusForward: "अंदाजित एकूण रक्कम",
+        kpiCorpusGoal: "ध्येय रक्कम",
+        leadHeading: "वैयक्तिक ध्येय आणि जोखीम आढावा घ्या",
+        leadSubtext: "तुमच्या ध्येयानुसार शैक्षणिक मार्गदर्शनासाठी तुमची माहिती नोंदवा.",
+        phName: "तुमचे पूर्ण नाव",
+        phPhone: "फोन नंबर",
+        phEmail: "ईमेल पत्ता",
+        btnSubmit: "कॉलची विनंती करा",
+        disclaimerHtml: "<strong>सूचना (Disclaimer):</strong> म्युच्युअल फंड गुंतवणूक बाजार जोखमीच्या अधीन आहे. गुंतवणूक करण्यापूर्वी योजनेशी संबंधित सर्व कागदपत्रे काळजीपूर्वक वाचा. कॅल्क्युलेटरमधील आकडे केवळ मार्गदर्शक अंदाज आहेत; कोणताही हमी परतावा नाही."
+      },
+      gu: {
+        titleHtml: 'સ્માર્ટ <span>ફોરવર્ડ અને ગોલ SIP</span> કેલ્ક્યુલેટર',
+        modeForward: "ફોરવર્ડ SIP (કુલ રકમ જાણો)",
+        modeGoal: "ગોલ રિવર્સ (માસિક SIP જાણો)",
+        presetDebt: "ડેટ / કન્ઝર્વેટિવ (8%)",
+        presetLarge: "લાર્જ કેપ / નિફ્ટી સંદર્ભ (12.5%)",
+        presetGrowth: "ગ્રોથ ઇક્વિટી સંદર્ભ (15%)",
+        lblMonthlySip: "માસિક SIP રકમ (₹)",
+        lblTargetCorpus: "લક્ષ્ય રકમ / Target Corpus (₹)",
+        lblTenure: "સમયગાળો (વર્ષ)",
+        lblRate: "અપેક્ષિત વાર્ષિક વળતર (%)",
+        lblStepUp: "વાર્ષિક Step-Up SIP (% / વર્ષ)",
+        goalBannerLabel: "જરૂરી શરૂઆતની માસિક SIP",
+        kpiInvested: "કુલ રોકાણ",
+        kpiGains: "અંદાજિત વળતર",
+        kpiCorpusForward: "અંદાજિત કુલ રકમ",
+        kpiCorpusGoal: "લક્ષ્ય રકમ",
+        leadHeading: "વ્યક્તિગત લક્ષ્ય અને રિસ્ક-પ્રોફાઇલ સમીક્ષા મેળવો",
+        leadSubtext: "તમારા લક્ષ્ય અને સમયગાળા મુજબ શૈક્ષણિક માર્ગદર્શન માટે વિગતો શેર કરો.",
+        phName: "તમારું પૂરું નામ",
+        phPhone: "ફોન નંબર",
+        phEmail: "ઇમેઇલ સરનામું",
+        btnSubmit: "કોલ વિનંતી મોકલો",
+        disclaimerHtml: "<strong>ડિસ્ક્લેમર:</strong> મ્યુચ્યુઅલ ફંડ રોકાણ બજારના જોખમોને આધીન છે. રોકાણ કરતા પહેલા યોજના સંબંધિત તમામ દસ્તાવેજો કાળજીપૂર્વક વાંચો. કેલ્ક્યુલેટરના આંકડા માત્ર અંદાજ માટે છે અને નિશ્ચિત વળતરની ખાતરી આપતા નથી."
+      }
+    };
 
     let currentMode = "forward";
+    let currentLang = "en";
 
     const els = {
+      mainTitle: document.getElementById("mainTitle"),
       modeForwardBtn: document.getElementById("modeForwardBtn"),
       modeGoalBtn: document.getElementById("modeGoalBtn"),
+      presetDebt: document.getElementById("presetDebt"),
+      presetLarge: document.getElementById("presetLarge"),
+      presetGrowth: document.getElementById("presetGrowth"),
+      lblMonthlySip: document.getElementById("lblMonthlySip"),
+      lblTargetCorpus: document.getElementById("lblTargetCorpus"),
+      lblTenure: document.getElementById("lblTenure"),
+      lblRate: document.getElementById("lblRate"),
+      lblStepUp: document.getElementById("lblStepUp"),
+      goalBannerLabel: document.getElementById("goalBannerLabel"),
+      kpiInvestedTitle: document.getElementById("kpiInvestedTitle"),
+      kpiGainsTitle: document.getElementById("kpiGainsTitle"),
+      leadHeading: document.getElementById("leadHeading"),
+      leadSubtext: document.getElementById("leadSubtext"),
+      inName: document.getElementById("inName"),
+      inPhone: document.getElementById("inPhone"),
+      inEmail: document.getElementById("inEmail"),
+      btnSubmitLead: document.getElementById("btnSubmitLead"),
+      disclaimerText: document.getElementById("disclaimerText"),
       forwardSipGroup: document.getElementById("forwardSipGroup"),
       targetCorpusGroup: document.getElementById("targetCorpusGroup"),
       sipNum: document.getElementById("monthlySipNum"),
@@ -466,7 +606,6 @@
       outGains: document.getElementById("outGains"),
       outTotal: document.getElementById("outTotal"),
       corpusKpiTitle: document.getElementById("corpusKpiTitle"),
-      feedStatus: document.getElementById("marketFeedStatus"),
       form: document.getElementById("aumLeadForm"),
       leadStatus: document.getElementById("leadStatus")
     };
@@ -568,15 +707,47 @@
       }
     });
 
+    function applyLanguage(lang) {
+      currentLang = lang;
+      const t = I18N[lang] || I18N.en;
+      document.querySelectorAll(".lang-btn").forEach((b) => {
+        b.classList.toggle("active", b.dataset.lang === lang);
+      });
+      els.mainTitle.innerHTML = t.titleHtml;
+      els.modeForwardBtn.textContent = t.modeForward;
+      els.modeGoalBtn.textContent = t.modeGoal;
+      els.presetDebt.textContent = t.presetDebt;
+      els.presetLarge.textContent = t.presetLarge;
+      els.presetGrowth.textContent = t.presetGrowth;
+      els.lblMonthlySip.textContent = t.lblMonthlySip;
+      els.lblTargetCorpus.textContent = t.lblTargetCorpus;
+      els.lblTenure.textContent = t.lblTenure;
+      els.lblRate.textContent = t.lblRate;
+      els.lblStepUp.textContent = t.lblStepUp;
+      els.goalBannerLabel.textContent = t.goalBannerLabel;
+      els.kpiInvestedTitle.textContent = t.kpiInvested;
+      els.kpiGainsTitle.textContent = t.kpiGains;
+      els.corpusKpiTitle.textContent = currentMode === "goal" ? t.kpiCorpusGoal : t.kpiCorpusForward;
+      els.leadHeading.textContent = t.leadHeading;
+      els.leadSubtext.textContent = t.leadSubtext;
+      els.inName.placeholder = t.phName;
+      els.inPhone.placeholder = t.phPhone;
+      els.inEmail.placeholder = t.phEmail;
+      els.btnSubmitLead.textContent = t.btnSubmit;
+      els.disclaimerText.innerHTML = t.disclaimerHtml;
+      refreshUI();
+    }
+
     function setMode(mode) {
       currentMode = mode;
       const isGoal = mode === "goal";
+      const t = I18N[currentLang] || I18N.en;
       els.modeForwardBtn.classList.toggle("active", !isGoal);
       els.modeGoalBtn.classList.toggle("active", isGoal);
       els.forwardSipGroup.classList.toggle("hidden", isGoal);
       els.targetCorpusGroup.classList.toggle("hidden", !isGoal);
       els.goalBanner.classList.toggle("visible", isGoal);
-      els.corpusKpiTitle.textContent = isGoal ? "Target Corpus" : "Projected Corpus";
+      els.corpusKpiTitle.textContent = isGoal ? t.kpiCorpusGoal : t.kpiCorpusForward;
       refreshUI();
     }
 
@@ -623,6 +794,10 @@
       });
     }
 
+    document.querySelectorAll(".lang-btn").forEach((btn) => {
+      btn.addEventListener("click", () => applyLanguage(btn.dataset.lang));
+    });
+
     els.modeForwardBtn.addEventListener("click", () => setMode("forward"));
     els.modeGoalBtn.addEventListener("click", () => setMode("goal"));
 
@@ -643,25 +818,14 @@
       });
     });
 
-    if (BENCHMARK_JSON_URL) {
-      fetch(BENCHMARK_JSON_URL)
-        .then((r) => r.json())
-        .then((data) => {
-          if (data && data.summary) {
-            els.feedStatus.textContent = `Benchmark Feed: ${data.summary}`;
-          }
-        })
-        .catch(() => {
-          els.feedStatus.textContent = "Benchmark Feed: Using local reference presets";
-        });
-    }
-
     els.form.addEventListener("submit", async (e) => {
       e.preventDefault();
       const payload = {
         name: els.form.name.value.trim(),
         phone: els.form.phone.value.trim(),
         email: els.form.email.value.trim(),
+        language: currentLang,
+        channel: "aumrmoney",
         mode: currentMode,
         targetCorpus: currentMode === "goal" ? els.targetNum.value : els.outTotal.textContent,
         monthlySip: currentMode === "goal" ? els.outRequiredSip.textContent : els.sipNum.value,
